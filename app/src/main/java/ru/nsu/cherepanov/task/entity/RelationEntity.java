@@ -2,34 +2,34 @@ package ru.nsu.cherepanov.task.entity;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 
-public class NodeEntity {
+public class RelationEntity {
     private BigInteger id;
-    private double lat;
-    private double lon;
     private String userName;
     private BigInteger uid;
     private BigInteger version;
     private BigInteger changeset;
     private Timestamp timestamp;
     private Map<String, String> tags;
+    private List<Member> members;
 
-    public NodeEntity(BigInteger id, double lat, double lon, String userName, BigInteger uid, BigInteger version, BigInteger changeset, Timestamp timestamp, Map<String, String> tags) {
+    public RelationEntity(BigInteger id, String userName, BigInteger uid, BigInteger version, BigInteger changeset, Timestamp timestamp, Map<String, String> tags, List<Member> members) {
         this.id = id;
-        this.lat = lat;
-        this.lon = lon;
         this.userName = userName;
         this.uid = uid;
         this.version = version;
         this.changeset = changeset;
         this.timestamp = timestamp;
         this.tags = tags;
+        this.members = members;
     }
 
-    public NodeEntity() { }
+    public RelationEntity() {
+    }
 
     public Map<String, String> getTags() {
         return tags;
@@ -39,28 +39,20 @@ public class NodeEntity {
         this.tags = tags;
     }
 
+    public List<Member> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<Member> members) {
+        this.members = members;
+    }
+
     public BigInteger getId() {
         return id;
     }
 
     public void setId(BigInteger id) {
         this.id = id;
-    }
-
-    public double getLat() {
-        return lat;
-    }
-
-    public void setLat(double lat) {
-        this.lat = lat;
-    }
-
-    public double getLon() {
-        return lon;
-    }
-
-    public void setLon(double lon) {
-        this.lon = lon;
     }
 
     public String getUserName() {
@@ -107,27 +99,26 @@ public class NodeEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        NodeEntity that = (NodeEntity) o;
-        return Double.compare(that.lat, lat) == 0 && Double.compare(that.lon, lon) == 0 && id.equals(that.id) && userName.equals(that.userName) && uid.equals(that.uid) && version.equals(that.version) && changeset.equals(that.changeset) && timestamp.equals(that.timestamp) && tags.equals(that.tags);
+        RelationEntity that = (RelationEntity) o;
+        return id.equals(that.id) && userName.equals(that.userName) && uid.equals(that.uid) && version.equals(that.version) && changeset.equals(that.changeset) && timestamp.equals(that.timestamp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, lat, lon, userName, uid, version, changeset, timestamp, tags);
+        return Objects.hash(id, userName, uid, version, changeset, timestamp);
     }
 
     @Override
     public String toString() {
-        return "NodeEntity{" +
+        return "RelationEntity{" +
                 "id=" + id +
-                ", lat=" + lat +
-                ", lon=" + lon +
                 ", userName='" + userName + '\'' +
                 ", uid=" + uid +
                 ", version=" + version +
                 ", changeset=" + changeset +
                 ", timestamp=" + timestamp +
                 ", tags=" + tags +
+                ", members=" + members +
                 '}';
     }
 }

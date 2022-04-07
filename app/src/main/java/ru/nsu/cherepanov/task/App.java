@@ -3,15 +3,20 @@
  */
 package ru.nsu.cherepanov.task;
 
-import org.apache.commons.cli.*;
+import jakarta.xml.bind.JAXBException;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import jakarta.xml.bind.JAXBException;
 import ru.nsu.cherepanov.task.dao.NodeDao;
-import ru.nsu.cherepanov.task.dao.TagDao;
+import ru.nsu.cherepanov.task.dao.RelationDao;
+import ru.nsu.cherepanov.task.dao.WayDao;
 import ru.nsu.cherepanov.task.db.Database;
+import ru.nsu.cherepanov.task.inflater.DbInflater;
+import ru.nsu.cherepanov.task.osm.OpenStreetMapXMLProcessor;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -82,8 +87,8 @@ public class App {
         logger.info("Hello world!");
         try (var inputStream = openInputStream(osmDataPath);
              var outputStream = getOutputStream(statFilePath)) {
-            collectStat(inputStream, outputStream, DbInflater.InsertType.of(insertType));
-        } catch (IOException | JAXBException | XMLStreamException | SQLException | ClassNotFoundException e) {
+            collectStat(inputStream, outputStream, insertType);
+        } catch (IOException | XMLStreamException | JAXBException | SQLException | ClassNotFoundException e) {
             logger.error(e.getMessage());
         }
     }
@@ -101,14 +106,15 @@ public class App {
         return new FileOutputStream(statFilePath);
     }
 
-    private void collectStat(InputStream inputStream, OutputStream outputStream, DbInflater.InsertType insertType) throws XMLStreamException, JAXBException, SQLException, ClassNotFoundException {
+    private void collectStat(InputStream inputStream, OutputStream outputStream, int insertType) throws XMLStreamException, JAXBException, SQLException, ClassNotFoundException {
         var xmlReader = XMLInputFactory.newFactory().createXMLStreamReader(inputStream);
         var userToEditNumberMap = new HashMap<String, Integer>();
         var tagKeyToNodeNumberMap = new HashMap<String, Integer>();
         var connection = new Database().connect();
-        var dbInflater = new DbInflater(new NodeDao(connection), new TagDao(connection), insertType);
+        var dbInflater = new DbInflater(new NodeDao(connection), new RelationDao(connection), new WayDao(connection), DbInflater.InsertType.of(insertType));
         new OpenStreetMapXMLProcessor(xmlReader, userToEditNumberMap, tagKeyToNodeNumberMap, dbInflater).process();
         printStat(userToEditNumberMap, tagKeyToNodeNumberMap, dbInflater.getNodesPerSecond(), outputStream);
+        connection.close();
     }
 
     private void printStat(Map<String, Integer> userToEditNumberMap,
